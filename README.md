@@ -4,7 +4,7 @@ We needed a way to expand snippets when we wrote books so we made this!
 
 Snippet Expander lets you refer to code from one file (e.g. asciidoc source of a book, say) by including tags referring to parts of another file (e.g. your example source code).
 
-Note that highlighting is currently broken.
+Note that highlighting is currently broken. 
 
 ## Usage
 
@@ -31,11 +31,11 @@ Execute with --help for options/instructions on running.
 Some of thiese might already be done:
 
 * Run this as a pre-commit hook so that it's always up to date
-* This will embed the code straight into the asciidoc; consider a "snip clean" command to remove them?
+* ~~This will embed the code straight into the asciidoc; consider a "snip clean" command to remove them?~~ DONE
 * Big huge errors if a snippet is not found
 * Define a default language for syntax highlighting in atlas.json
-* Work out how to reference source files (maybe don't? do a search for unique tags instead? might be worth adding in a command like "search for tags relative to this folder now" to avoid having to make EVERY tag globally unique)
-* De-indent final snippet content so that no lines have extraneous leading whitespace
+* ~~Work out how to reference source files (maybe don't? do a search for unique tags instead? might be worth adding in a command like "search for tags relative to this folder now" to avoid having to make EVERY tag globally unique).~~~ DONE
+* ~~De-indent final snippet content so that no lines have extraneous leading whitespace.~~ DONE
 * Alert when lines go over a certain width, to catch typesetting issues
 * Take de-indentation into account
 * Collapse multiple blank lines to a single blank line
