@@ -24,6 +24,8 @@ Include snippet(s) and highlight some snippets:
 
 Multiple snippets can have the same name; they will be combined at build time in the order that they appear in the file.
 
+Execute with --help for options/instructions on running.
+
 ## Ideas
 
 Some of thiese might already be done:
