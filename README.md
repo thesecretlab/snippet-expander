@@ -24,7 +24,37 @@ Include snippet(s) and highlight some snippets:
 
 Multiple snippets can have the same name; they will be combined at build time in the order that they appear in the file.
 
-Execute with --help for options/instructions on running.
+## Example
+
+In your text file:
+````
+This is some text explaining some code, and here is the code:
+
+// snip: code_example_1
+
+This continues the explanation of the code above.
+````
+
+In your code example file:
+````
+// BEGIN code_example_1
+var someVariable = "Yes"
+// END code_example_1
+````
+After running Snippet Expander, the text file:
+
+````
+This is some text explaining some code, and here is the code:
+
+// snip: code_example_1
+[source,javascript]
+----
+var someVariable = "Yes"
+----
+
+This continues the explanation of the code above.
+````
+Execute with --help for options/instructions on running. Snippets can be nested and updated.
 
 ## Ideas
 
