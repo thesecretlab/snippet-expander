@@ -6,6 +6,8 @@ import os
 from pprint import pprint
 import re
 
+import logging
+
 MAX_LINE_WIDTH=80
 
 def build_file_list(starting_dir, extension):
@@ -37,30 +39,44 @@ def tag_source_file(path):
     begin_re = re.compile(".*?\/\/ BEGIN (.*).*")
     end_re = re.compile(".*?\/\/ END (.*).*")
     
+    line_num = 0
+    
     for line in file:
         
+        # If this line contains "//-", "/*-" or "-*/", it's a comment
+        # that should not be rendered.
+        if "/*-" in line or "-*/" in line or "//-" in line:
+            pass
+        
         # If we entered a tag, add it to the list
-        if begin_re.search(line):
+        elif begin_re.search(line):
             tag = begin_re.search(line).group(1)
+            
+            if tag in current_tags:
+                logging.warn("{0}:{1}: \"{2}\" was entered twice without exiting it".format(path, line_num, tag))
+                
             current_tags.append(tag)
+            
             
         # If we left a tag, remove it
         elif end_re.search(line):
             tag = end_re.search(line).group(1)
+            
+            if  tag not in current_tags:
+                logging.warn("{0}:{1}: \"{2}\" was exited, but had not yet been entered".format(path, line_num, tag))
+                
             current_tags.remove(tag)
-            # TODO: Error if we exited a tag that we did not enter
+            
           
         # If it's neither, add it to the list of tagged lines 
         else:
             tagged_lines.append((line, copy(current_tags)))
+            
+        line_num += 1
     
     # TODO: Error if we left a file with an unclosed tag
     
     return tagged_lines
-    
-
-    
-    
 
 def parse_snippet_command(command):
     """Returns the tuple (tags_to_include, tags_to_exclude, tags_to_highlight)"""
@@ -71,18 +87,20 @@ def parse_snippet_command(command):
     tokens = filter(None, tokens)
     
     if tokens[0] != "snip":
-        raise ValueError("First token must be 'snip'")
+        logging.fatal("Somehow managed to parse First token must be 'snip'")
     
     # The current mode of our parser
     INCLUDE_TAGS=0
     EXCLUDE_TAGS=1
     HIGHLIGHT_TAGS=2    
+    ISOLATE_TAGS=3
     mode = INCLUDE_TAGS
     
     # The useful output of this function
     tags_to_include = []
     tags_to_exclude = []
     tags_to_highlight = []
+    tags_to_isolate = []
     
     # Interpret the list of tokens
     for token in tokens[1:]:
@@ -92,6 +110,8 @@ def parse_snippet_command(command):
             mode = EXCLUDE_TAGS
         elif token == "highlighting":
             mode = HIGHLIGHT_TAGS
+        elif token == "isolating":
+            mode = ISOLATE_TAGS
         
         # Otherwise, add it to the list of tokens
         else:
@@ -101,10 +121,14 @@ def parse_snippet_command(command):
                 tags_to_exclude.append(token)
             elif mode == HIGHLIGHT_TAGS:
                 tags_to_highlight.append(token)
+            elif mode == ISOLATE_TAGS:
+                tags_to_isolate.append(token)
+                if len(tags_to_isolate) > 1:
+                    logging.warn("Command {0}: 'isolating' should only have one tag in its list".format(command))
                 
-    return (tags_to_include,tags_to_exclude,tags_to_highlight)
+    return (tags_to_include,tags_to_exclude,tags_to_highlight,tags_to_isolate)
    
-def render_snippet(tags, include, exclude, highlight):
+def render_snippet(tags, include, exclude, highlight, isolate):
     """Searches 'tags', and returns a string comprised of all lines that match any tags in 'include' and do not match any in 'exclude'"""
     
     # TODO: Implement highlighting support
@@ -114,10 +138,16 @@ def render_snippet(tags, include, exclude, highlight):
     snippet_contents = StringIO()
     
     for candidate_line in tags:
-        # If it has tags that we want, and none of the tags we don't, include it
-        if set(candidate_line[1]).intersection(include) and not set(candidate_line[1]).intersection(exclude):
+        # If its LAST tag is the same as any of the isolating tags, include it
+        if set(candidate_line[1][-1:]).intersection(isolate):
             snippet_contents.write(candidate_line[0])
             has_content = True
+        # If it has tags that we want, and none of the tags we don't, include it
+        elif set(candidate_line[1]).intersection(include) and not set(candidate_line[1]).intersection(exclude):
+            snippet_contents.write(candidate_line[0])
+            has_content = True
+        
+            
             
     if has_content == False:
         return None
@@ -126,6 +156,9 @@ def render_snippet(tags, include, exclude, highlight):
     
     import textwrap
     rendered_snippet = textwrap.dedent(rendered_snippet)
+    
+    # Remove multiple blank links
+    rendered_snippet = re.sub(r"\n\n+", r"\n\n", rendered_snippet)
     
     
     
@@ -164,7 +197,7 @@ def render_file(file_path, tags):
         if line.startswith("// snip:"):
             
             snippet_command = parse_snippet_command(line)
-            snippet_content = render_snippet(tags, snippet_command[0], snippet_command[1], snippet_command[2])
+            snippet_content = render_snippet(tags, snippet_command[0], snippet_command[1], snippet_command[2], snippet_command[3])
             
             if snippet_content:            
                 file_contents.write("[source,javascript]\n")
