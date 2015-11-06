@@ -24,6 +24,10 @@ Include snippet(s) and highlight some snippets:
 
 Multiple snippets can have the same name; they will be combined at build time in the order that they appear in the file.
 
+Include snippets, but none of their child snippets:
+
+// snip: isolating <snippet name>
+
 ## Example
 
 In your text file:
@@ -56,6 +60,40 @@ This continues the explanation of the code above.
 ````
 Execute with --help for options/instructions on running. Snippets can be nested and updated.
 
+You can also use the `isolating` feature to show only the top level of a snippet. For example, say have the following code:
+
+````
+// BEGIN function_foo
+func foo() {
+	
+	// BEGIN thing_one
+	do_thing_one()
+	// END thing_one	
+	
+	// BEGIN thing_two
+	do_thing_two()
+	// END thing_two
+	
+}
+// END function_foo
+````
+
+And you have the following text:
+
+````
+// snip: isolating function_foo
+````
+
+This will be rendered as:
+
+````
+func foo() {
+	
+}
+````
+
+Note that you don't have to keep track of the tags you want to exclude - if you just want the top level of stuff, use `isolating`!
+
 ## Ideas
 
 Some of thiese might already be done:
@@ -67,8 +105,7 @@ Some of thiese might already be done:
 * ~~Work out how to reference source files (maybe don't? do a search for unique tags instead? might be worth adding in a command like "search for tags relative to this folder now" to avoid having to make EVERY tag globally unique).~~~ DONE
 * ~~De-indent final snippet content so that no lines have extraneous leading whitespace.~~ DONE
 * Alert when lines go over a certain width, to catch typesetting issues
-* Take de-indentation into account
-* Collapse multiple blank lines to a single blank line
+* ~~Collapse multiple blank lines to a single blank line~~ DONE
 
 ## License
 
