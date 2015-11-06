@@ -10,15 +10,15 @@ Note that highlighting is currently broken.
 
 Include snippet(s) in your text file:
 
-// snip: <snippet name>, [<snippet name>...]
+// snip: (snippet name), [(snippet name)...]
 
 Include snippet(s) but exclude some snippets:
 
-// snip: <snippet name>, [<snippet name>...] except <snippet name>, [<snippet name>...]
+// snip: (snippet name), [(snippet name)...] except (snippet name), [(snippet name)...]
 
 Include snippet(s) and highlight some snippets:
 
-// snip: <snippet name>, [<snippet name>...] highlighting <snippet name>, [<snippet name>...]
+// snip: (snippet name), [(snippet name)...] highlighting (snippet name), [(snippet name)...]
 
 "except" and "highlighting" can be combined.
 
@@ -26,7 +26,7 @@ Multiple snippets can have the same name; they will be combined at build time in
 
 Include snippets, but none of their child snippets:
 
-// snip: isolating <snippet name>
+// snip: isolating (snippet name)
 
 ## Example
 
