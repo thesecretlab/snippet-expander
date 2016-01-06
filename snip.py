@@ -135,19 +135,26 @@ def render_snippet(tags, include, exclude, highlight, isolate):
     from StringIO import StringIO
     
     has_content = False
+    highlighted_lines = []
+    
     snippet_contents = StringIO()
     
     for candidate_line in tags:
+        
+        line = candidate_line[0]
+        
+        is_highlighted = set(candidate_line[1]).intersection(highlight)
+        
         # If its LAST tag is the same as any of the isolating tags, include it
         if set(candidate_line[1][-1:]).intersection(isolate):
-            snippet_contents.write(candidate_line[0])
+            snippet_contents.write(line)
+            highlighted_lines.append(is_highlighted)
             has_content = True
-        # If it has tags that we want, and none of the tags we don't, include it
+        # Otherwise, if it has tags that we want, and none of the tags we don't, include it
         elif set(candidate_line[1]).intersection(include) and not set(candidate_line[1]).intersection(exclude):
-            snippet_contents.write(candidate_line[0])
+            snippet_contents.write(line)
+            highlighted_lines.append(is_highlighted)
             has_content = True
-        
-            
             
     if has_content == False:
         return None
@@ -157,9 +164,24 @@ def render_snippet(tags, include, exclude, highlight, isolate):
     import textwrap
     rendered_snippet = textwrap.dedent(rendered_snippet)
     
-    # Remove multiple blank links
-    rendered_snippet = re.sub(r"\n\n+", r"\n\n", rendered_snippet)
+    final_contents = StringIO()
     
+    print("highlighted lines has {0} elements".format(len(highlighted_lines)))
+    
+    from string import split
+    
+    for line_num, line_text in enumerate(split(rendered_snippet, "\n")):
+        if line_num < len(highlighted_lines) and highlighted_lines[line_num]:
+            final_contents.write("> {0}\n".format(line_text))
+        else:
+            final_contents.write("  {0}\n".format(line_text))
+            
+    rendered_snippet = final_contents.getvalue()
+    
+    # Remove multiple blank lines
+    rendered_snippet = re.sub(r"[> ]*\n[> ]*\n+", r"\n\n", rendered_snippet)
+    
+    rendered_snippet = re.sub(r"\n\n+", r"\n\n", rendered_snippet)
     
     
     # wrapper = textwrap.TextWrapper()
@@ -168,7 +190,6 @@ def render_snippet(tags, include, exclude, highlight, isolate):
     #
     # rendered_snippet = wrapper.fill(rendered_snippet)
     
-    # TODO: Remove multiple blank lines
     # TODO: Warn when de-indented lines exceed a line width
     
     return rendered_snippet
@@ -227,6 +248,7 @@ if __name__ == '__main__':
     # Pull in the tags, unless we're only cleaning
     if args.only_clean == False:
         swift_files = build_file_list(args.source_directory, "swift")
+        swift_files.extend(build_file_list(args.source_directory, "strings"))
         
         for file in swift_files:
             new_tags = tag_source_file(file)
