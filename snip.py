@@ -10,6 +10,13 @@ import logging
 
 MAX_LINE_WIDTH=80
 
+FILE_EXTENSIONS = [
+    "swift",
+    "strings",
+    "cs",
+    "txt"    
+]
+
 def build_file_list(starting_dir, extension):
     """Returns an array of files."""
     found_files = []
@@ -70,7 +77,7 @@ def tag_source_file(path):
           
         # If it's neither, add it to the list of tagged lines 
         else:
-            tagged_lines.append((line, copy(current_tags)))
+            tagged_lines.append((line, copy(current_tags), (path, line_num)))
             
         line_num += 1
     
@@ -157,45 +164,53 @@ def render_snippet(tags, include, exclude, highlight, isolate):
             has_content = True
             
     if has_content == False:
-        return None
+        return (None, [])
         
     rendered_snippet = snippet_contents.getvalue()
     
     import textwrap
     rendered_snippet = textwrap.dedent(rendered_snippet)
     
-    final_contents = StringIO()
-    
-    print("highlighted lines has {0} elements".format(len(highlighted_lines)))
+    # list of (highlighted,contents) tuples
+    contents = []
     
     from string import split
     
     for line_num, line_text in enumerate(split(rendered_snippet, "\n")):
         if line_num < len(highlighted_lines) and highlighted_lines[line_num]:
-            final_contents.write("> {0}\n".format(line_text))
+            contents.append((True, line_text))
         else:
-            final_contents.write("  {0}\n".format(line_text))
-            
-    rendered_snippet = final_contents.getvalue()
+            contents.append((False, line_text))
+
     
-    # Remove multiple blank lines
-    rendered_snippet = re.sub(r"[> ]*\n[> ]*\n+", r"\n\n", rendered_snippet)
+    # remove multiple blank lines
+    final_contents = []
+    last_line_was_blank = True # doing this means removing initial blank lines
+    empty_line = re.compile("^\s*$") # the line contains only whitespace
+    for line in contents:
+        this_line_blank = empty_line.match(line[1])
+        if last_line_was_blank and this_line_blank:
+            continue
+        last_line_was_blank = this_line_blank
+        final_contents.append(line)
     
-    rendered_snippet = re.sub(r"\n\n+", r"\n\n", rendered_snippet)
+    rendered_snippet = StringIO()
     
+    warnings = []
     
-    # wrapper = textwrap.TextWrapper()
-    # wrapper.width = MAX_LINE_WIDTH
-    # replace_whitespace = False
-    #
-    # rendered_snippet = wrapper.fill(rendered_snippet)
-    
-    # TODO: Warn when de-indented lines exceed a line width
-    
-    return rendered_snippet
+    for (line_num, line) in enumerate(final_contents):
+        if line[0] == True:
+            rendered_snippet.write("> {0}\n".format(line[1]))
+        else:
+            rendered_snippet.write("  {0}\n".format(line[1]))
+        
+        if (len(line[1]) > MAX_LINE_WIDTH):
+            warnings.append((line_num, "exceeds max line length ({0})".format(len(line[1]))))
+        
+    return (rendered_snippet.getvalue(), warnings)
         
 
-def render_file(file_path, tags):
+def render_file(file_path, tags, language):
     """Returns the text of the file, with snippets rendered."""
     
     # First, clean the file of any already-rendered snippets
@@ -214,17 +229,24 @@ def render_file(file_path, tags):
         # Write back the line
         file_contents.write(line)
         
+        
         # Expand snippet commands if we find them
         if line.startswith("// snip:"):
             
             snippet_command = parse_snippet_command(line)
-            snippet_content = render_snippet(tags, snippet_command[0], snippet_command[1], snippet_command[2], snippet_command[3])
+            snippet_content, warnings = render_snippet(tags, snippet_command[0], snippet_command[1], snippet_command[2], snippet_command[3])
             
-            if snippet_content:            
-                file_contents.write("[source,javascript]\n")
+            for warning in warnings:
+                warn_line_num = warning[0] + file_contents.getvalue().count("\n") + 3
+                logging.warn("{0}:{1} {2}".format(file_path, warn_line_num, warning[1]))
+            
+            if snippet_content:
+                file_contents.write("[source,{0}]\n".format(language))
                 file_contents.write("----\n")
                 file_contents.write(snippet_content)
                 file_contents.write("----\n")
+                
+            
     
     
     return file_contents.getvalue()
@@ -236,6 +258,8 @@ if __name__ == '__main__':
     parser.add_argument('--only-clean', dest='only_clean', action='store_const',
                        const=True, default=False,
                        help='remove snippets from source documents only')
+    parser.add_argument('--lang', dest="language", type=str, default="javascript",
+                       help='the language to use for syntax highlighting')
     parser.add_argument('--asciidoc-directory', type=str, default=".",
                        help='the directory containing asciidoc files to process (default = current directory)')
     parser.add_argument('source_directory', type=str,
@@ -247,8 +271,11 @@ if __name__ == '__main__':
     
     # Pull in the tags, unless we're only cleaning
     if args.only_clean == False:
-        swift_files = build_file_list(args.source_directory, "swift")
-        swift_files.extend(build_file_list(args.source_directory, "strings"))
+        
+        swift_files = []
+        
+        for extension in FILE_EXTENSIONS:
+            swift_files.extend(build_file_list(args.source_directory, extension))
         
         for file in swift_files:
             new_tags = tag_source_file(file)
@@ -259,6 +286,6 @@ if __name__ == '__main__':
     asciidoc_files = build_file_list(args.asciidoc_directory, "asciidoc")
     
     for file in asciidoc_files:
-        new_contents = render_file(file, tags)
+        new_contents = render_file(file, tags, args.language)
         new_file = open(file, "w")
         new_file.write(new_contents)
