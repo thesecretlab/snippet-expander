@@ -8,13 +8,19 @@ import re
 
 import logging
 
-MAX_LINE_WIDTH=80
+MAX_LINE_WIDTH=79
 
 FILE_EXTENSIONS = [
     "swift",
     "strings",
     "cs",
-    "txt"    
+    "txt",
+    "shader"    
+]
+
+TARGET_FILE_EXTENSIONS = [
+    "asciidoc",
+    "md"
 ]
 
 def build_file_list(starting_dir, extension):
@@ -213,7 +219,7 @@ def render_snippet(tags, include, exclude, highlight, isolate):
 def render_file(file_path, tags, language):
     """Returns the text of the file, with snippets rendered."""
     
-    # First, clean the file of any already-rendered snippets
+    # First, clean the file of any already-rendered snippets, preserving the tag
     file = open(file_path, 'r')
     file_contents = file.read()
     snip_with_code = re.compile("(//.*snip:.*\n)(\[.*\]\n)*----\n(.*\n)*?----\n")
@@ -243,8 +249,10 @@ def render_file(file_path, tags, language):
             if snippet_content:
                 file_contents.write("[source,{0}]\n".format(language))
                 file_contents.write("----\n")
-                file_contents.write(snippet_content)
+                file_contents.write(snippet_content[0:-3]) # omit the last linebreak and its following 2 spaces
                 file_contents.write("----\n")
+            else:
+                logging.warn("{0}:{1}: no snippet found".format(file_path, line))
                 
             
     
@@ -262,8 +270,10 @@ if __name__ == '__main__':
                        help='the language to use for syntax highlighting')
     parser.add_argument('--asciidoc-directory', type=str, default=".",
                        help='the directory containing asciidoc files to process (default = current directory)')
+    parser.add_argument('--verbose', dest="verbose", action='store_const', const=True, default=False, help="Be verbose")
     parser.add_argument('source_directory', type=str,
                        help='the directory to search for code snippets')
+                       
     
     args = parser.parse_args()
     
@@ -283,9 +293,14 @@ if __name__ == '__main__':
             tags += new_tags
     
     # Process every asciidoc file we found
-    asciidoc_files = build_file_list(args.asciidoc_directory, "asciidoc")
+    asciidoc_files = [] 
+    
+    for extension in TARGET_FILE_EXTENSIONS:
+        asciidoc_files.extend(build_file_list(args.asciidoc_directory, extension))
     
     for file in asciidoc_files:
+        if args.verbose:
+            print file
         new_contents = render_file(file, tags, args.language)
         new_file = open(file, "w")
         new_file.write(new_contents)
