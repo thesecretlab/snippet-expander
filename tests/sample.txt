@@ -1,0 +1,10 @@
+This is an example showing the snippet processor in action.
+
+// snip: sourceA
+
+Let's change to see the second tag.
+
+// tag: sourceA-v2.txt
+// snip: sourceA
+
+This is the final line of the example.

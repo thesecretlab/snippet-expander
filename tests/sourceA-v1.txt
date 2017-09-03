@@ -1,0 +1,3 @@
+// BEGIN sourceA
+This is version 1 of source A.
+// END sourceA
