@@ -3,7 +3,7 @@ import shutil
 import os
 import git
 
-from tagged_document import TaggedDocument, TaggedDocumentVersion
+from tagged_document import TaggedDocument
 
 dir_path = os.getcwd()
 

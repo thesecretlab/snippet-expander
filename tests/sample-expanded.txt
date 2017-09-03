@@ -1,6 +1,7 @@
 This is an example showing the snippet processor in action.
 
 // snip: sourceA
+[source,swift]
 ----
 This is version 3 of source A.
 This line is tagged with both 'sourceA' and 'sourceA-1'.
@@ -10,6 +11,7 @@ Let's change to see the second tag.
 
 // tag: sourceA-v2.txt
 // snip: sourceA
+[source,swift]
 ----
 This is version 2 of source A.
 ----

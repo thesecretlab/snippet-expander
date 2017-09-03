@@ -24,15 +24,19 @@ class SourceDocument(object):
         cleaned = re.sub(snip_with_code, r'\1', self.contents)
         return cleaned
 
-    def render(self, tagged_documents):
+    def render(self, tagged_documents, language=None):
 
         """Returns a version of itself after expanding snippets with code found in 'tagged_documents'"""
         assert isinstance(tagged_documents, list)
+        assert isinstance(language, str) or language is None
 
+        # start with a version of ourself that has no expanded snippets
         source_lines = self.cleaned_contents.split("\n")
 
+        # the list of lines we're working with
         output_lines = []
 
+        # default to working with files at HEAD
         current_ref = "HEAD"
 
         for line in source_lines:
@@ -44,24 +48,34 @@ class SourceDocument(object):
 
             # expand snippets as we encounter them
             if line.startswith(SNIP_PREFIX):
-                output_lines.append("----")
 
+                # figure out what tags we're supposed to be using here
                 query_text = line[len(SNIP_PREFIX):]
 
+                # get the list of documents that actually exist at this point
                 documents_at_current_tag = filter(None, [document[current_ref] for document in tagged_documents])
 
+                # get the tagged lines that apply from these documents
                 rendered_content = [document.query(query_text).split("\n") for document in documents_at_current_tag]
 
+                # any document that produced no lines will have returned None; remove those
                 rendered_content = filter(None, rendered_content)
 
-                # we have a list of list of lines; we want to flatten this to a plain list of lines
+                # we now have a list of list of lines; we want to flatten this to a plain list of lines
                 rendered_lines = itertools.chain.from_iterable(rendered_content)
 
-                output_lines += rendered_lines
+                # time to produce our output!
 
+                # add the language tag if one was specified
+                if language:
+                    output_lines.append("[source,{}]".format(language))
+
+                # and output the snippet
+                output_lines.append("----")
+                output_lines += rendered_lines
                 output_lines.append("----")
         
-        # render the output
+        # render the output into a string; we're done!
         output = "\n".join(output_lines)
 
         return output

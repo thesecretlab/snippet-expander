@@ -16,9 +16,9 @@ class SourceDocumentTests(unittest.TestCase):
         document = SourceDocument(input_path)
 
         self.assertEqual(document.cleaned_contents, reference_text)
-    
-    def test_processing(self):
 
+    def test_processing(self):
+        """Tests rendering a snippet using tagged documents."""
         repo = create_test_repo()
 
         tagged_documents = TaggedDocument.find(repo, ["txt"])
@@ -29,10 +29,9 @@ class SourceDocumentTests(unittest.TestCase):
         reference_path = "tests/sample-expanded.txt"
         reference_text = open(reference_path, "r").read()
 
-        
         source = SourceDocument(input_path)
 
-        rendered_output = source.render(tagged_documents)
+        rendered_output = source.render(tagged_documents, language="swift")
 
         self.assertEqual(rendered_output, reference_text)
 
