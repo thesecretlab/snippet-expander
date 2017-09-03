@@ -17,6 +17,14 @@ class SourceDocumentTests(unittest.TestCase):
 
         self.assertEqual(document.cleaned_contents, reference_text)
 
+    def test_finding_documents(self):
+
+        found_documents = SourceDocument.find("tests", ["txt"])
+
+        self.assertTrue(len(found_documents) == 5)
+
+
+
     def test_processing(self):
         """Tests rendering a snippet using tagged documents."""
         repo = create_test_repo()

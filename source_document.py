@@ -2,6 +2,7 @@
 
 import re
 import itertools
+import os
 
 SNIP_PREFIX="// snip:"
 TAG_PREFIX="// tag:"
@@ -15,7 +16,29 @@ class SourceDocument(object):
         with open(path, "r") as source_file:
             self.contents = source_file.read()
 
+    @staticmethod
+    def find(base_path, extensions):
+        assert isinstance(base_path, str)
+        assert isinstance(extensions, list)
+
+        documents = []
+
+        starting_dir = base_path
+
+        for (path, dirs, files) in os.walk(starting_dir):
+            
+            for filename in files:
+                for extension in extensions:
+                    if filename.endswith("."+extension):
+                        file_path = path+os.path.sep+filename
+
+                        if ".git" in file_path:
+                            continue
+
+                        
+                        documents.append(SourceDocument(file_path))
         
+        return documents  
 
     @property 
     def cleaned_contents(self):

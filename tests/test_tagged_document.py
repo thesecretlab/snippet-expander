@@ -49,6 +49,7 @@ def create_test_repo():
 class SourceDocumentTests(unittest.TestCase):
 
     def setUp(self):
+        # create a repo with test data
         self.repo = create_test_repo()
     
     def tearDown(self): 
@@ -113,3 +114,4 @@ class SourceDocumentTests(unittest.TestCase):
         reference_text = "This is version 3 of source A."
 
         self.assertEqual(tagged_text, reference_text)
+        
