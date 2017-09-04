@@ -25,12 +25,12 @@ class TaggedDocument(object):
             for filename in files:
                 for extension in extensions:
                     if filename.endswith("."+extension):
-                        path = path+os.path.sep+filename
+                        file_path = path+os.path.sep+filename
 
                         if ".git" in path:
                             continue
 
-                        path_relative_to_repo = os.path.relpath(path, starting_dir)
+                        path_relative_to_repo = os.path.relpath(file_path, starting_dir)
                         
                         documents.append(TaggedDocument(repo, path_relative_to_repo))
         
@@ -41,7 +41,7 @@ class TaggedDocument(object):
     def __init__(self, repo, path):
         assert isinstance(repo, git.Repo)
         assert isinstance(path, str)
-        self.path = path
+        self.path = path.replace(os.sep, "/")
         self.versions = {} # maps git refs to TaggedDocumentVersion objects
         self.repo = repo
     
@@ -81,6 +81,8 @@ class TaggedDocumentVersion(object):
         self.lines = []
 
         self.parse_lines(self.data)
+
+        logging.info("Loaded %s (%i lines)", self.path, len(self.lines))
     
     def query(self, query_string):
         """Given a query string, returns the lines of text that match the specified query."""
@@ -220,3 +222,5 @@ class TagQuery(object):
                     self.highlight.append(token)
                 elif mode == ISOLATE_TAGS:
                     self.isolate.append(token)
+        
+        logging.info("Query includes tags %s", self.include)

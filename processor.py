@@ -34,7 +34,7 @@ class Processor(object):
             else:
                 with open(doc.path + suffix, "w") as output_file:
                     output_file.write(rendered_source)
-                logging.info("%s", doc.path)
+                logging.info("Writing %s", doc.path)
 
 
 
@@ -53,8 +53,18 @@ def main():
     opts.source_dir = args[0]
     opts.code_dir = args[1]
 
+    logging.getLogger().setLevel(logging.INFO)
+
     processor = Processor(opts.source_dir, opts.code_dir,source_extensions=["txt","asciidoc"], tagged_extensions=["swift","txt"])
 
+    logging.info("Found %i source files:", len(processor.source_documents))
+    for doc in processor.source_documents:
+        logging.info(" - %s", doc.path)
+    
+    logging.info("Found %i code files:", len(processor.tagged_documents))
+    for doc in processor.tagged_documents:
+        logging.info(" - %s", doc.path)
+    
     processor.process()
 
 if __name__ == '__main__':
