@@ -43,6 +43,8 @@ def main():
     options = optparse.OptionParser("%prog [options] asciidoc_dir sourcecode_dir")
 
     options.add_option("-l", "--lang", dest="language", default="swift")
+    options.add_option("-n", "--dry-run", action="store_true", help="Don't actually modify any files")
+    options.add_option("--suffix", default="", help="Append this to the file name of written files (default=none)")
 
     (opts, args) = options.parse_args()
 
@@ -65,7 +67,7 @@ def main():
     for doc in processor.tagged_documents:
         logging.info(" - %s", doc.path)
     
-    processor.process()
+    processor.process(dry_run=opts.dry_run, suffix=opts.suffix)
 
 if __name__ == '__main__':
     main()
