@@ -92,18 +92,26 @@ class SourceDocument(object):
                 rendered_lines = list(itertools.chain.from_iterable(rendered_content))
 
                 if not rendered_lines:
-                    logging.warn("%s: No code found for query '%s'", self.path, query_text)
-                else:
-                    # time to produce our output!
+                    # if we got no lines, we log a warning and also render out that warning
+                    # in the final output (so that a proofreader can spot it)
 
-                    # add the language tag if one was specified
-                    if language:
-                        output_lines.append("[source,{}]".format(language))
+                    import textwrap
+                    warning = "No code found for query '{}' at ref '{}'".format(query_text, current_ref)
+                    warning = textwrap.fill(warning, 80)
+                    logging.warn("%s: %s", self.path, warning)
+                    exclamations = "!" * 8
+                    rendered_lines = [exclamations, warning, exclamations]
+                
+                # time to produce our output!
 
-                    # and output the snippet
-                    output_lines.append("----")
-                    output_lines += rendered_lines
-                    output_lines.append("----")
+                # add the language tag if one was specified
+                if language:
+                    output_lines.append("[source,{}]".format(language))
+
+                # and output the snippet
+                output_lines.append("----")
+                output_lines += rendered_lines
+                output_lines.append("----")
         
         # render the output into a string; we're done!
         output = "\n".join(output_lines)
