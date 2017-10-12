@@ -55,7 +55,7 @@ def main():
 
     logging.getLogger().setLevel(logging.INFO)
 
-    processor = Processor(opts.source_dir, opts.code_dir,source_extensions=["txt","asciidoc"], tagged_extensions=["swift","txt"])
+    processor = Processor(opts.source_dir, opts.code_dir,source_extensions=["txt","asciidoc"], tagged_extensions=["swift","txt"], language=opts.language)
 
     logging.info("Found %i source files:", len(processor.source_documents))
     for doc in processor.source_documents:
