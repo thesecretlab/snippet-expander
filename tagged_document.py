@@ -146,8 +146,8 @@ class TaggedDocumentVersion(object):
                 
                 if tag in current_tags:
                     logging.warn("{0}:{1}: \"{2}\" was entered twice without exiting it".format(self.path, line_number, tag))
-                    
-                current_tags.append(tag)
+                else:
+                    current_tags.append(tag)
                 
                 
             # If we left a tag, remove it
@@ -156,8 +156,8 @@ class TaggedDocumentVersion(object):
                 
                 if tag not in current_tags:
                     logging.warn("{0}:{1}: \"{2}\" was exited, but had not yet been entered".format(self.path, line_number, tag))
-                    
-                current_tags.remove(tag)
+                else:
+                    current_tags.remove(tag)
                 
             
             # If it's neither, and we're inside any tagged region, 
