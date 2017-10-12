@@ -82,7 +82,7 @@ class TaggedDocumentVersion(object):
 
         self.parse_lines(self.data)
 
-        logging.info("Loaded %s (%i lines)", self.path, len(self.lines))
+        logging.debug("Loaded %s (%i lines)", self.path, len(self.lines))
     
     def query(self, query_string):
         """Given a query string, returns the lines of text that match the specified query."""
@@ -223,4 +223,4 @@ class TagQuery(object):
                 elif mode == ISOLATE_TAGS:
                     self.isolate.append(token)
         
-        logging.info("Query includes tags %s", self.include)
+        logging.debug("Query includes tags %s", self.include)
