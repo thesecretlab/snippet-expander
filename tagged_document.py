@@ -128,8 +128,8 @@ class TaggedDocumentVersion(object):
 
         assert isinstance(data, str)
 
-        begin_re = re.compile(r".*?\/\/ BEGIN (.*).*")
-        end_re = re.compile(r".*?\/\/ END (.*).*")
+        begin_re = re.compile(r"\s*\/\/\s*BEGIN\s+(.*).*")
+        end_re = re.compile(r"\s*\/\/\s*END\s+(.*).*")
 
         current_tags = []
 
