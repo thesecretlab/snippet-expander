@@ -48,11 +48,14 @@ class SourceDocument(object):
         cleaned = re.sub(snip_with_code, r'\1', self.contents)
         return cleaned
 
-    def render(self, tagged_documents, language=None):
+    def render(self, tagged_documents, language=None, clean=False):
 
         """Returns a version of itself after expanding snippets with code found in 'tagged_documents'"""
         assert isinstance(tagged_documents, list)
         assert isinstance(language, str) or language is None
+
+        if clean:
+            return self.cleaned_contents
 
         # start with a version of ourself that has no expanded snippets
         source_lines = self.cleaned_contents.split("\n")

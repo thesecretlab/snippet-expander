@@ -8,9 +8,15 @@ import logging
 import optparse
 import sys
 
+SOURCE_FILE_EXTENSIONS = [
+    "swift",
+    "txt",
+    "cs"
+]
+
 class Processor(object):
     
-    def __init__(self, source_path, tagged_path, source_extensions=["txt"], tagged_extensions=["swift"], language=None):
+    def __init__(self, source_path, tagged_path, source_extensions=["txt"], tagged_extensions=["swift"], language=None, clean=False):
         assert isinstance(source_path, str)
         assert isinstance(tagged_path, str)
         
@@ -19,6 +25,7 @@ class Processor(object):
 
         self.tagged_documents = TaggedDocument.find(self.repo, tagged_extensions)
         self.source_documents = SourceDocument.find(source_path, source_extensions)
+        self.clean = clean
 
         self.language = language
     
@@ -27,7 +34,7 @@ class Processor(object):
         for doc in self.source_documents:
             assert isinstance(doc, SourceDocument)
 
-            rendered_source = doc.render(self.tagged_documents, language=self.language)
+            rendered_source = doc.render(self.tagged_documents, language=self.language, clean=self.clean)
 
             if dry_run:
                 logging.info("Would write %s", doc.path)
@@ -44,6 +51,7 @@ def main():
 
     options.add_option("-l", "--lang", dest="language", default="swift")
     options.add_option("-n", "--dry-run", action="store_true", help="Don't actually modify any files")
+    options.add_option("--clean", action="store_true", help="Remove snippets from files")
     options.add_option("--suffix", default="", help="Append this to the file name of written files (default=none)")
 
     (opts, args) = options.parse_args()
@@ -57,7 +65,7 @@ def main():
 
     logging.getLogger().setLevel(logging.INFO)
 
-    processor = Processor(opts.source_dir, opts.code_dir,source_extensions=["txt","asciidoc"], tagged_extensions=["swift","txt"], language=opts.language)
+    processor = Processor(opts.source_dir, opts.code_dir,source_extensions=["txt","asciidoc"], tagged_extensions=SOURCE_FILE_EXTENSIONS, language=opts.language, clean=opts.clean)
 
     logging.info("Found %i source files:", len(processor.source_documents))
     for doc in processor.source_documents:
