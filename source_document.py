@@ -4,6 +4,7 @@ import re
 import itertools
 import os
 import logging
+from fuzzywuzzy import process
 
 SNIP_PREFIX="// snip:"
 TAG_PREFIX="// tag:"
@@ -91,7 +92,7 @@ class SourceDocument(object):
 
         if clean:
             return self.cleaned_contents
-
+        
         # start with a version of ourself that has no expanded snippets
         source_lines = self.cleaned_contents.split("\n")
 
@@ -101,12 +102,15 @@ class SourceDocument(object):
         # default to working with files at HEAD
         current_ref = "HEAD"
 
+        all_tags_at_current_tag = list({tag for doc in tagged_documents for tag in doc[current_ref].tags})
+
         for line in source_lines:
             output_lines.append(line)
 
             # change which tag we're looking at if we hit an instruction to do so
             if line.startswith(TAG_PREFIX):
                 current_ref = line[len(TAG_PREFIX)+1:].strip()
+                all_tags_at_current_tag = list({tag for doc in tagged_documents for tag in doc[current_ref].tags})
 
             # expand snippets as we encounter them
             if line.startswith(SNIP_PREFIX):
@@ -133,8 +137,15 @@ class SourceDocument(object):
                     # if we got no lines, we log a warning and also render out that warning
                     # in the final output (so that a proofreader can spot it)
 
+                    # try and find some potential tags that could fit
+                    from tagged_document import TagQuery
+
+                    query = TagQuery(query_text)
+
+                    bests = [result[0] for result in process.extractBests(query.include[0], all_tags_at_current_tag, score_cutoff=80)]
+                    
                     import textwrap
-                    warning = "No code found for query '{}' at ref '{}'".format(query_text, current_ref)
+                    warning = "No code found for query '{}' at ref '{}'. Possible replacement tags include: {}".format(query_text, current_ref, ", ".join(bests))
                     warning = textwrap.fill(warning, 80)
                     logging.warn("%s: %s", self.path, warning)
                     exclamations = "!" * 8
