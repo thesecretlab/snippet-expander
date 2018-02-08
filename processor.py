@@ -60,7 +60,7 @@ class Processor(object):
                 duplicate_tags[tag].add(group_pair_keys[0])
                 duplicate_tags[tag].add(group_pair_keys[1])
         
-        print("\nChecking for multiple tag definitions.")
+        logging.debug("\nChecking for multiple tag definitions.")
             
         for tag in duplicate_tags:
             
@@ -70,7 +70,7 @@ class Processor(object):
                 doc_list.append(" - {0}\n".format(doc))
             
             
-            print("WARNING: Tag '{0}' is defined in multiple files:\n{1}".format(tag, "".join(doc_list)))
+            logging.warn("Tag '{0}' is defined in multiple files:\n{1}".format(tag, "".join(doc_list)))
 
             referenced_doc = [source_document for source_document in self.source_documents if tag in source_document.tags_used]
 
@@ -79,7 +79,7 @@ class Processor(object):
             for ref in referenced_doc:
                 ref_list.append("\t - {0}\n".format(ref.path))
 
-            print("\t'{0}' is used in documents:\n{1}".format(tag, "".join(ref_list)))
+            logging.warn("\t'{0}' is used in documents:\n{1}".format(tag, "".join(ref_list)))
 
 
 
@@ -107,13 +107,13 @@ def main():
 
     processor = Processor(opts.source_dir, opts.code_dir,source_extensions=["txt","asciidoc"], tagged_extensions=SOURCE_FILE_EXTENSIONS, language=opts.language, clean=opts.clean)
 
-    logging.info("Found %i source files:", len(processor.source_documents))
+    logging.debug("Found %i source files:", len(processor.source_documents))
     for doc in processor.source_documents:
-        logging.info(" - %s", doc.path)
+        logging.debug(" - %s", doc.path)
     
-    logging.info("Found %i code files:", len(processor.tagged_documents))
+    logging.debug("Found %i code files:", len(processor.tagged_documents))
     for doc in processor.tagged_documents:
-        logging.info(" - %s", doc.path)
+        logging.debug(" - %s", doc.path)
 
     processor.find_multiply_defined_tags()
     
