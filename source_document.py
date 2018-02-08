@@ -48,6 +48,41 @@ class SourceDocument(object):
         cleaned = re.sub(snip_with_code, r'\1', self.contents)
         return cleaned
 
+    @property
+    def tags_used(self):
+
+        from tagged_document import TagQuery
+
+        results = set()
+
+        # start with a version of ourself that has no expanded snippets
+        source_lines = self.cleaned_contents.split("\n")
+
+        # the list of lines we're working with
+        output_lines = []
+
+        # default to working with files at HEAD
+        current_ref = "HEAD"
+
+        for line in source_lines:
+            output_lines.append(line)
+
+            # change which tag we're looking at if we hit an instruction to do so
+            if line.startswith(TAG_PREFIX):
+                current_ref = line[len(TAG_PREFIX)+1:].strip()
+
+            # expand snippets as we encounter them
+            if line.startswith(SNIP_PREFIX):
+
+                # figure out what tags we're supposed to be using here
+                query_text = line[len(SNIP_PREFIX)+1:]
+
+                query = TagQuery(query_text)
+
+                results |= query.all_referenced_tags
+        
+        return results
+
     def render(self, tagged_documents, language=None, clean=False):
 
         """Returns a version of itself after expanding snippets with code found in 'tagged_documents'"""

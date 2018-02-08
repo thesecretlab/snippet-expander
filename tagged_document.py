@@ -30,6 +30,9 @@ class TaggedDocument(object):
                         if ".git" in path:
                             continue
 
+                        if "old" in path:
+                            continue
+
                         path_relative_to_repo = os.path.relpath(file_path, starting_dir)
                         
                         documents.append(TaggedDocument(repo, path_relative_to_repo))
@@ -83,6 +86,21 @@ class TaggedDocumentVersion(object):
         self.parse_lines(self.data)
 
         logging.debug("Loaded %s (%i lines)", self.path, len(self.lines))
+
+    @property
+    def tags(self):
+
+        tags = set()
+
+        for line in self.lines:
+
+            assert isinstance(line, TaggedLine)
+
+            tags = tags.union(set(line.tags))
+        
+        # return the set of all tags in this document
+        return tags
+
     
     def query(self, query_string):
         """Given a query string, returns the lines of text that match the specified query."""
@@ -224,3 +242,7 @@ class TagQuery(object):
                     self.isolate.append(token)
         
         logging.debug("Query includes tags %s", self.include)
+
+    @property
+    def all_referenced_tags(self):
+        return set(self.include) |  set(self.exclude) |  set(self.highlight) | set(self.isolate)
