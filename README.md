@@ -94,18 +94,25 @@ func foo() {
 
 Note that you don't have to keep track of the tags you want to exclude - if you just want the top level of stuff, use `isolating`!
 
-## Ideas
+## Installing
 
-Some of thiese might already be done:
+1. Install Pipenv:
 
-* Run this as a pre-commit hook so that it's always up to date
-* ~~This will embed the code straight into the asciidoc; consider a "snip clean" command to remove them?~~ DONE
-* Big huge errors if a snippet is not found
-* Define a default language for syntax highlighting in atlas.json
-* ~~Work out how to reference source files (maybe don't? do a search for unique tags instead? might be worth adding in a command like "search for tags relative to this folder now" to avoid having to make EVERY tag globally unique).~~~ DONE
-* ~~De-indent final snippet content so that no lines have extraneous leading whitespace.~~ DONE
-* Alert when lines go over a certain width, to catch typesetting issues
-* ~~Collapse multiple blank lines to a single blank line~~ DONE
+    $ brew install pipenv
+
+2. Clone the snippet processor:
+
+    $ git clone git@github.com:thesecretlab/snippet-expander.git
+
+3. Enter the directory you just cloned:
+
+	$ cd snippet-expander 
+
+4. Set up your environment
+
+	$ pipenv install
+
+5. 
 
 ## License
 
