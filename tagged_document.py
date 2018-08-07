@@ -34,9 +34,21 @@ class TaggedDocument(object):
                             continue
 
                         path_relative_to_repo = os.path.relpath(file_path, starting_dir)
+
+                        # if this path happens to be in the repo, then we add it to the
+                        # documents we're using
+                        logging.debug("Possibly adding %s", path_relative_to_repo)
+                        try:
+                            _ = repo.tree("HEAD")[path_relative_to_repo]
+                            documents.append(TaggedDocument(repo, path_relative_to_repo))
+                        except KeyError:
+                            logging.debug("Skipping %s because it is not present at HEAD in the repo", path_relative_to_repo)
                         
-                        documents.append(TaggedDocument(repo, path_relative_to_repo))
-        
+                            
+
+                        
+        if len(documents) == 0:
+            logging.warn("No tagged documents were found.")
         return documents
         
         
@@ -206,18 +218,23 @@ ISOLATE_TAGS = 3
 
 class TagQuery(object):
     """Represents a query for a specific set of tags."""
-    def __init__(self, query_string):
+    def __init__(self, query_string, ref="HEAD"):
 
         assert isinstance(query_string, str)
         tokens = query_string.split(" ")
 
         mode = INCLUDE_TAGS
         
+        # The context at which we 
+        self.query_string = query_string 
+        self.ref = ref 
+
         # The specific tags this query deals with
         self.include = []
         self.exclude = []
         self.highlight = []
         self.isolate = []
+        
         
         # Interpret the list of tokens
         for token in tokens:
@@ -242,6 +259,13 @@ class TagQuery(object):
                     self.isolate.append(token)
         
         logging.debug("Query includes tags %s", self.include)
+    
+    @property
+    def as_filename(self):
+        if self.ref == "HEAD":
+            return "{}.txt".format(self.query_string.replace(" ", "_"))
+        else:
+            return "{}_{}.txt".format(self.ref, self.query_string.replace(" ", "_"))
 
     @property
     def all_referenced_tags(self):

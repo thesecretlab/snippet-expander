@@ -7,6 +7,7 @@ import logging
 from fuzzywuzzy import process
 
 SNIP_PREFIX="// snip:"
+SNIP_FILE_PREFIX="// snip-file:"
 TAG_PREFIX="// tag:"
 
 class SourceDocument(object):
@@ -17,6 +18,11 @@ class SourceDocument(object):
         
         with open(path, "r") as source_file:
             self.contents = source_file.read()
+
+    @property
+    def filename(self):
+        return os.path.splitext(os.path.basename)[0]
+        
 
     @staticmethod
     def find(base_path, extensions):
@@ -45,16 +51,17 @@ class SourceDocument(object):
     @property 
     def cleaned_contents(self):
         """Returns a version of 'text' that has no expanded snippets."""
-        snip_with_code = re.compile("(//.*snip:.*\n)(\[.*\]\n)*----\n(.*\n)*?----\n")
+        snip_with_code = re.compile("(//.*snip(\-file)*:.*\n)(\[.*\]\n)*----\n(.*\n)*?----\n")
         cleaned = re.sub(snip_with_code, r'\1', self.contents)
         return cleaned
-
+    
     @property
-    def tags_used(self):
+    def snippets(self):
+        """Returns the list of snippets in this document, as a TagQuery."""
+
+        queries = []
 
         from tagged_document import TagQuery
-
-        results = set()
 
         # start with a version of ourself that has no expanded snippets
         source_lines = self.cleaned_contents.split("\n")
@@ -72,26 +79,56 @@ class SourceDocument(object):
             if line.startswith(TAG_PREFIX):
                 current_ref = line[len(TAG_PREFIX)+1:].strip()
 
-            # expand snippets as we encounter them
+            # is this a snippet?
             if line.startswith(SNIP_PREFIX):
 
                 # figure out what tags we're supposed to be using here
                 query_text = line[len(SNIP_PREFIX)+1:]
 
-                query = TagQuery(query_text)
+                # build the tag query from this
+                query = TagQuery(query_text, ref=current_ref)
 
-                results |= query.all_referenced_tags
+                queries.append(query)
+
+        return queries
+
+    @property
+    def tags_used(self):
+        """Returns the set of all tags referred to in this document."""
+        return set([query.all_referenced_tags for query in self.snippets])
+
+    def render_snippet(self, query, tagged_documents):
+
+        from tagged_document import TagQuery
+
+        assert isinstance(query, TagQuery)
+
+        # get the list of documents that actually exist at this point
+        documents_at_current_tag = filter(None, [document[query.ref] for document in tagged_documents])
+
+        # get the tagged lines that apply from these documents
+        rendered_content = [document.query(query.query_string) for document in documents_at_current_tag]
+
+        # any document that produced no lines will have returned None; remove those
+        rendered_content = filter(None, rendered_content)
+
+        rendered_content = [content.split("\n") for content in rendered_content]
+
+        # we now have a list of list of lines; we want to flatten this to a plain list of lines
+        rendered_lines = list(itertools.chain.from_iterable(rendered_content))
+
+        return "\n".join(rendered_lines)
+
         
-        return results
 
-    def render(self, tagged_documents, language=None, clean=False):
+    def render(self, tagged_documents, language=None, clean=False, show_query=True, file_getter=None):
 
         """Returns a version of itself after expanding snippets with code found in 'tagged_documents'"""
         assert isinstance(tagged_documents, list)
         assert isinstance(language, str) or language is None
 
         if clean:
-            return self.cleaned_contents
+            return self.cleaned_contents, True
         
         # start with a version of ourself that has no expanded snippets
         source_lines = self.cleaned_contents.split("\n")
@@ -102,7 +139,12 @@ class SourceDocument(object):
         # default to working with files at HEAD
         current_ref = "HEAD"
 
+        # true if this file rendered any snippets
+        dirty = False 
+
         all_tags_at_current_tag = list({tag for doc in tagged_documents for tag in doc[current_ref].tags})
+
+        snippet_count = 0
 
         for line in source_lines:
             output_lines.append(line)
@@ -112,8 +154,25 @@ class SourceDocument(object):
                 current_ref = line[len(TAG_PREFIX)+1:].strip()
                 all_tags_at_current_tag = list({tag for doc in tagged_documents for tag in doc[current_ref].tags})
 
+            # expand file snippets as we encounter them
+            if line.startswith(SNIP_FILE_PREFIX):
+                if not file_getter:
+                    logging.warn("snip-file command used, but no file getter was provided")
+                    continue
+
+                dirty = True
+                filename = line[len(SNIP_FILE_PREFIX)+1:].strip()
+
+                file_contents = file_getter(filename)
+
+                output_lines.append("----")
+                output_lines.append(file_contents)
+                output_lines.append("----")
+
             # expand snippets as we encounter them
             if line.startswith(SNIP_PREFIX):
+
+                dirty = True
 
                 # figure out what tags we're supposed to be using here
                 query_text = line[len(SNIP_PREFIX)+1:]
@@ -129,9 +188,14 @@ class SourceDocument(object):
 
                 rendered_content = [content.split("\n") for content in rendered_content]
 
-                
                 # we now have a list of list of lines; we want to flatten this to a plain list of lines
                 rendered_lines = list(itertools.chain.from_iterable(rendered_content))
+
+                if show_query:
+                    from tagged_document import TagQuery
+                    query_obj = TagQuery(query_text)
+                    description = "// Snippet: {}-{}\n".format(snippet_count, query_obj.as_filename)
+                    rendered_lines = [description] + rendered_lines
 
                 if not rendered_lines:
                     # if we got no lines, we log a warning and also render out that warning
@@ -161,11 +225,13 @@ class SourceDocument(object):
                 output_lines.append("----")
                 output_lines += rendered_lines
                 output_lines.append("----")
+
+                snippet_count += 1
         
         # render the output into a string; we're done!
         output = "\n".join(output_lines)
 
-        return output
+        return output, dirty
 
 
 
