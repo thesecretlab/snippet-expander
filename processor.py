@@ -141,14 +141,14 @@ class Processor(object):
 def main():
     options = optparse.OptionParser("%prog [options] asciidoc_dir sourcecode_dir")
 
-    options.add_option("-l", "--lang", dest="language", default="swift")
+    options.add_option("-l", "--lang", dest="language", help="Indicate that the source code is in this language when syntax highlighting", default="swift")
     options.add_option("-n", "--dry-run", action="store_true", help="Don't actually modify any files")
     options.add_option("--clean", action="store_true", help="Remove snippets from files")
     options.add_option("--suffix", default="", help="Append this to the file name of written files (default=none)")
     options.add_option("-x", "--extract-snippets", dest="extract_dir", default=None, help="Render each snippet to a file, and store it in this directory.")
     options.add_option("-v", "--verbose", action="store_true", help="Verbose logging.")
     options.add_option("-q", "--show_query", action="store_true", help="Include the query in rendered snippets.")
-    options.add_option("-i", "--expand-images", action="store_true", help="Expand img: shortcuts")
+    options.add_option("-i", "--expand-images", action="store_true", help="Expand img: shortcuts (CURRENTLY BROKEN!)")
 
     (opts, args) = options.parse_args()
 

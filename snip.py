@@ -8,6 +8,9 @@ import re
 
 import logging
 
+from six import StringIO
+    
+
 MAX_LINE_WIDTH=79
 
 FILE_EXTENSIONS = [
@@ -145,7 +148,6 @@ def render_snippet(tags, include, exclude, highlight, isolate):
     """Searches 'tags', and returns a string comprised of all lines that match any tags in 'include' and do not match any in 'exclude'"""
     
     # TODO: Implement highlighting support
-    from StringIO import StringIO
     
     has_content = False
     highlighted_lines = []
@@ -226,7 +228,6 @@ def render_file(file_path, tags, language):
     cleaned_contents = re.sub(snip_with_code, r'\1', file_contents)
     
     # Now render snippets in this cleaned content
-    from StringIO import StringIO    
     cleaned_contents = StringIO(cleaned_contents)
     file_contents = StringIO()
     

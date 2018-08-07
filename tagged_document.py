@@ -4,7 +4,7 @@ import git
 import re
 import copy
 import logging
-from StringIO import StringIO
+from six import StringIO
 import textwrap
 import os
 
@@ -91,7 +91,7 @@ class TaggedDocumentVersion(object):
 
     def __init__(self, path, data, version):
         self.path = path
-        self.data = data.replace("\r", "")
+        self.data = data.replace(b"\r", b"")
         self.version = version
         self.lines = []
 
