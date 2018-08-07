@@ -138,6 +138,8 @@ $ ./processor.py <path to your asciidoc folder> <path to your source code folder
 
 The source code folder *must be a Git repository*, and the code you want to make appear in the AsciiDoc *must be committed to Git*. Otherwise, the script won't see it.
 
+The AsciiDoc folder and the source code folder are allowed to be the same place.
+
 ### Useful options:
 
 * If you want to see what files would change without actually writing any changes, use the `--dry-run` option.
