@@ -70,6 +70,10 @@ Launch the program, and set the `source_dir` to the folder containing your book'
 
 ![A screenshot of the Snippet Processor.](screenshots/processor.png)
 
+## Installing
+
+We currently offer a macOS build, since that's what we use. Click the Releases tab at the top of the page to download it!
+
 ## Usage
 
 ### Rendering Snippets
