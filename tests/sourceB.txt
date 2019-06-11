@@ -1,0 +1,3 @@
+// BEGIN sourceB
+This file is not committed to the test repo.
+// END sourceB

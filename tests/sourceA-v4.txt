@@ -1,0 +1,6 @@
+// BEGIN sourceA
+This is version 4 of source A. This version of the file is not committed to the test repo.
+// BEGIN sourceA-1
+This line is tagged with both 'sourceA' and 'sourceA-1'.
+// END sourceA-1
+// END sourceA

@@ -21,7 +21,7 @@ class SourceDocumentTests(unittest.TestCase):
 
         found_documents = SourceDocument.find("tests", ["txt"])
 
-        self.assertTrue(len(found_documents) == 5)
+        self.assertTrue(len(found_documents) == 7)
 
 
 
@@ -39,9 +39,9 @@ class SourceDocumentTests(unittest.TestCase):
 
         source = SourceDocument(input_path)
 
-        rendered_output = source.render(tagged_documents, language="swift")
+        rendered_output = source.render(tagged_documents, language="swift",show_query=False)
 
-        self.assertEqual(rendered_output, reference_text)
+        self.assertEqual(rendered_output, (reference_text, True))
 
 
 

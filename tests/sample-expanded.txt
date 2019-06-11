@@ -3,8 +3,16 @@ This is an example showing the snippet processor in action.
 // snip: sourceA
 [source,swift]
 ----
-This is version 3 of source A.
+This is version 4 of source A. This version of the file is not committed to the test repo.
 This line is tagged with both 'sourceA' and 'sourceA-1'.
+----
+
+Let's now pull in a file that hasn't been committed.
+
+// snip: sourceB
+[source,swift]
+----
+This file is not committed to the test repo.
 ----
 
 Let's change to see the second tag.

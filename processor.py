@@ -93,8 +93,12 @@ class Processor(object):
                     f.write(output)
 
 
-            
-            
+    def find_overlong_lines(self, limit):
+        import itertools
+        all_long_lines = itertools.chain(*[doc["HEAD"].lines_over_limit(limit) for doc in self.tagged_documents])
+
+        for line in all_long_lines:
+            logging.info("Line too long: %s:%i (%i > %i)", line.source_name, line.line_number, len(line.text), limit)
 
 
     
@@ -148,6 +152,7 @@ def main():
     options.add_option("-x", "--extract-snippets", dest="extract_dir", default=None, help="Render each snippet to a file, and store it in this directory.")
     options.add_option("-v", "--verbose", action="store_true", help="Verbose logging.")
     options.add_option("-q", "--show_query", action="store_true", help="Include the query in rendered snippets.")
+    options.add_option("--length", default=75, help="The maximum length permitted for snippet lines.")
     options.add_option("-i", "--expand-images", action="store_true", help="Expand img: shortcuts (CURRENTLY BROKEN!)")
 
     (opts, args) = options.parse_args()
@@ -175,6 +180,8 @@ def main():
         logging.debug(" - %s", doc.path)
 
     processor.find_multiply_defined_tags()
+
+    processor.find_overlong_lines(opts.length)
     
     processor.process(dry_run=opts.dry_run, suffix=opts.suffix)
 

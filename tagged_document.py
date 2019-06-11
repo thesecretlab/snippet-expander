@@ -8,6 +8,8 @@ from six import StringIO
 import textwrap
 import os
 
+from source_document import WORKSPACE_REF
+
 class TaggedDocument(object):
     """A document containing tagged regions."""
 
@@ -37,12 +39,9 @@ class TaggedDocument(object):
 
                         # if this path happens to be in the repo, then we add it to the
                         # documents we're using
-                        logging.debug("Possibly adding %s", path_relative_to_repo)
-                        try:
-                            _ = repo.tree("HEAD")[path_relative_to_repo]
-                            documents.append(TaggedDocument(repo, path_relative_to_repo))
-                        except KeyError:
-                            logging.debug("Skipping %s because it is not present at HEAD in the repo", path_relative_to_repo)
+                        logging.debug("Adding %s", path_relative_to_repo)
+
+                        documents.append(TaggedDocument(repo, path_relative_to_repo))                        
                         
                             
 
@@ -59,6 +58,13 @@ class TaggedDocument(object):
         self.path = path.replace(os.sep, "/")
         self.versions = {} # maps git refs to TaggedDocumentVersion objects
         self.repo = repo
+
+        # Add the current-on-disk version
+        path_on_disk = os.path.join(repo.working_dir, path)
+        with open(path_on_disk) as file_on_disk:
+            data_on_disk = file_on_disk.read()
+            self.versions[WORKSPACE_REF] = TaggedDocumentVersion(self.path, data_on_disk, WORKSPACE_REF)
+        
     
     def __getitem__(self, revision):
         """Gets the version of this document at a specified revision (ie commit number, tag or other ref)"""
@@ -158,8 +164,8 @@ class TaggedDocumentVersion(object):
 
         assert isinstance(data, str)
 
-        begin_re = re.compile(r"\s*\/\/\s*BEGIN\s+(.*).*")
-        end_re = re.compile(r"\s*\/\/\s*END\s+(.*).*")
+        begin_re = re.compile(r"\s*\/\/\s*BEGIN\s+([^\s]+)")
+        end_re = re.compile(r"\s*\/\/\s*END\s+([^\s]+)")
 
         current_tags = []
 
@@ -194,6 +200,11 @@ class TaggedDocumentVersion(object):
             # add it to the list of tagged lines 
             elif current_tags:
                 self.lines.append(TaggedLine(self.path, line_number, line_text, copy.copy(current_tags)))
+    
+    def lines_over_limit(self, limit):
+
+        return [line for line in self.lines if len(line.text) > limit]
+
     
 class TaggedLine(object):
     """A line in a document, with its associated tags."""

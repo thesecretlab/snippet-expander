@@ -25,9 +25,17 @@ def create_test_repo():
     # Initialise the empty repo
     repo = git.Repo.init(REPO_DIR)
 
-    # We're going to create three versions of this file; each version has different
-    # content, so we'll pull that from these source files
+    # We're going to create three versions of this file; each version has
+    # different content, so we'll pull that from these source files
     versions =["sourceA-v1.txt",  "sourceA-v2.txt",  "sourceA-v3.txt"]
+    
+    # We'll also add in place a version that exists in the working copy, but has not yet been committed.
+    uncommitted_version = "sourceA-v4.txt"
+
+    # Finally, we'll also add a file that is present in the working copy,
+    # but has never been committed to the repo (i.e. no versions of it
+    # exist at all in the history.)
+    uncommitted_file = "sourceB.txt"
 
     # Get the index so we can stage and commit each version
     index = repo.index
@@ -38,11 +46,20 @@ def create_test_repo():
     # Do a shortcut
     join = os.path.join 
 
+    # Add and commit the multiple versions of the file
     for version in versions:
         shutil.copy(join("tests",version), join(REPO_DIR,"sourceA.txt"))
         index.add(["sourceA.txt"])
         index.commit("Updated sourceA.txt using {}".format(version), author=committer)
         repo.create_tag(version)
+    
+    # Copy in the last version on top, as an uncommitted version in the
+    # working copy
+    shutil.copy(join("tests",uncommitted_version), join(REPO_DIR,"sourceA.txt"))
+
+    # Copy in the uncommitted file
+    shutil.copy(join("tests",uncommitted_file), join(REPO_DIR,"sourceB.txt"))
+
     
     return repo
 
@@ -75,7 +92,8 @@ class SourceDocumentTests(unittest.TestCase):
         # the repo contains a tag for each version, and each tag is named
         # with the original source file (eg "-v1.txt" etc).
 
-        # check that each tag in the repo matches its corresponding source file
+        # check that each tag in the repo matches its corresponding source
+        # file
         for tag in tags:
             tagged_version = document[tag].data
 

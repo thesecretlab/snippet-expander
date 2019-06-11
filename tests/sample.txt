@@ -2,6 +2,10 @@ This is an example showing the snippet processor in action.
 
 // snip: sourceA
 
+Let's now pull in a file that hasn't been committed.
+
+// snip: sourceB
+
 Let's change to see the second tag.
 
 // tag: sourceA-v2.txt
