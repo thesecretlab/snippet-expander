@@ -25,7 +25,9 @@ if (Input.GetMouseButtonUp(0)) {
 And include a comment in your written content like this:
 
 ```asciidoc
-You access the button states in a very similar way to how you access the keys on the keyboard (see <<input-keyboard>>), by using the +Input+ class's +GetMouseButtonUp+, +GetMouseButtonDown+, and +GetMouseButton+ methods:
+You access the button states in a very similar way to how you access the keys
+on the keyboard (see <<input-keyboard>>), by using the +Input+ class's 
++GetMouseButtonUp+, +GetMouseButtonDown+, and +GetMouseButton+ methods:
 
 // snip: input_mouse
 ```
