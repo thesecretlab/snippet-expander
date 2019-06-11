@@ -24,4 +24,14 @@ Let's change to see the second tag.
 This is version 2 of source A.
 ----
 
+Finally, let's go back to the working copy.
+
+// tag: working-copy
+// snip: sourceA
+[source,swift]
+----
+This is version 4 of source A. This version of the file is not committed to the test repo.
+This line is tagged with both 'sourceA' and 'sourceA-1'.
+----
+
 This is the final line of the example.

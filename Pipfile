@@ -22,6 +22,8 @@ six = "==1.10.0"
 wrapt = "==1.10.11"
 Pygments = "==2.2.0"
 python-Levenshtein = "==0.12.0"
+pyinstaller = "*"
+gooey = "*"
 
 [dev-packages]
 pyinstaller = "*"

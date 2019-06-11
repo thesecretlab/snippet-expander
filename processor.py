@@ -2,12 +2,15 @@
 
 
 import git
+from gooey import Gooey, GooeyParser
 from tagged_document import TaggedDocument, TagQuery
 from source_document import SourceDocument
 import logging
-import optparse
+from argparse import ArgumentParser
 import sys
 import os
+
+from source_document import WORKSPACE_REF
 
 SOURCE_FILE_EXTENSIONS = [
     "swift",
@@ -95,7 +98,7 @@ class Processor(object):
 
     def find_overlong_lines(self, limit):
         import itertools
-        all_long_lines = itertools.chain(*[doc["HEAD"].lines_over_limit(limit) for doc in self.tagged_documents])
+        all_long_lines = itertools.chain(*[doc[WORKSPACE_REF].lines_over_limit(limit) for doc in self.tagged_documents])
 
         for line in all_long_lines:
             logging.info("Line too long: %s:%i (%i > %i)", line.source_name, line.line_number, len(line.text), limit)
@@ -109,9 +112,9 @@ class Processor(object):
 
         duplicate_tags = defaultdict(set)
 
-        docs_at_head = filter(lambda d: d["HEAD"], self.tagged_documents)
+        docs_at_head = filter(lambda d: d[WORKSPACE_REF], self.tagged_documents)
 
-        tag_groups = {doc.path: doc["HEAD"].tags for doc in self.tagged_documents}
+        tag_groups = {doc.path: doc[WORKSPACE_REF].tags for doc in self.tagged_documents}
 
         for group_pair_keys in combinations(tag_groups, 2):
 
@@ -142,28 +145,35 @@ class Processor(object):
             logging.warn("\t'{0}' is used in documents:\n{1}".format(tag, "".join(ref_list)))
 
 
+@Gooey(
+    program_name="Snippet Processor",
+    tabbed_groups=True
+)
 def main():
-    options = optparse.OptionParser("%prog [options] asciidoc_dir sourcecode_dir")
+    options = GooeyParser()
 
-    options.add_option("-l", "--lang", dest="language", help="Indicate that the source code is in this language when syntax highlighting", default="swift")
-    options.add_option("-n", "--dry-run", action="store_true", help="Don't actually modify any files")
-    options.add_option("--clean", action="store_true", help="Remove snippets from files")
-    options.add_option("--suffix", default="", help="Append this to the file name of written files (default=none)")
-    options.add_option("-x", "--extract-snippets", dest="extract_dir", default=None, help="Render each snippet to a file, and store it in this directory.")
-    options.add_option("-v", "--verbose", action="store_true", help="Verbose logging.")
-    options.add_option("-q", "--show_query", action="store_true", help="Include the query in rendered snippets.")
-    options.add_option("--length", default=75, help="The maximum length permitted for snippet lines.")
-    options.add_option("-i", "--expand-images", action="store_true", help="Expand img: shortcuts (CURRENTLY BROKEN!)")
+    options.add_argument("source_dir", help="Path to the directory containing your book's source text.", widget="DirChooser")
+    options.add_argument("code_dir", help="Path to the git repo containing source code.", widget="DirChooser")
 
-    (opts, args) = options.parse_args()
-
-    if len(args) != 2:
-        options.print_usage()
-        sys.exit(1)
     
-    opts.source_dir = args[0]
-    opts.code_dir = args[1]
+    options.add_argument("-l", "--lang", dest="language", help="Indicate that the source code is in this language when syntax highlighting", default="swift")
+    options.add_argument("-n", "--dry-run", action="store_true", help="Don't actually modify any files")
+    options.add_argument("--clean", action="store_true", help="Remove snippets from files, instead of adding their contents to files")
+    options.add_argument("--length", default=75, help="The maximum length permitted for snippet lines. Lines longer than this will be warned about.")
 
+    advanced_options = options.add_argument_group("Advanced Options")
+
+    
+    advanced_options.add_argument("--suffix", default="", help="Append this to the file name of written files (default=none)")
+    advanced_options.add_argument("-x", "--extract-snippets", dest="extract_dir", default=None, help="Render each snippet to a file, and store it in this directory.", widget="DirChooser")
+    advanced_options.add_argument("-v", "--verbose", action="store_true", help="Verbose logging.")
+    advanced_options.add_argument("-q", "--show_query", action="store_true", help="Include the query in rendered snippets.")
+    #options.add_argument("-i", "--expand-images", action="store_true", help="Expand img: shortcuts (CURRENTLY BROKEN!)")
+
+    
+    
+    opts = options.parse_args()
+    
     logging.getLogger().setLevel(logging.INFO)
 
     if opts.verbose:

@@ -11,4 +11,9 @@ Let's change to see the second tag.
 // tag: sourceA-v2.txt
 // snip: sourceA
 
+Finally, let's go back to the working copy.
+
+// tag: working-copy
+// snip: sourceA
+
 This is the final line of the example.

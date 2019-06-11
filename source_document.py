@@ -14,7 +14,7 @@ TAG_PREFIX="// tag:"
 # and may not necessarily be stored in the index or in a commit. Uses a
 # space because these are very uncommon in tags or branch names, and not
 # seen in commit hashes.
-WORKSPACE_REF = "Working Copy"
+WORKSPACE_REF = "working-copy"
 
 class SourceDocument(object):
     """A document, containing snippets that refer to tagged code."""
