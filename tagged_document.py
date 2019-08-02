@@ -164,8 +164,12 @@ class TaggedDocumentVersion(object):
 
         assert isinstance(data, str)
 
-        begin_re = re.compile(r"\s*\/\/\s*BEGIN\s+([^\s]+)")
-        end_re = re.compile(r"\s*\/\/\s*END\s+([^\s]+)")
+        # begin_re = re.compile(r"\s*(\/\/|#)\s*BEGIN\s+([^\s]+)")
+        # end_re = re.compile(r"\s*(\/\/|#)\s*END\s+([^\s]+)")
+
+        begin_re = re.compile(r"\s*(\/\/|\#)\s*BEGIN\s+([^\s]+)")
+        end_re = re.compile(r"\s*(\/\/|\#)\s*END\s+([^\s]+)")
+
 
         current_tags = []
 
@@ -178,7 +182,7 @@ class TaggedDocumentVersion(object):
             
             # If we entered a tag, add it to the list
             elif begin_re.search(line_text):
-                tag = begin_re.search(line_text).group(1)
+                tag = begin_re.search(line_text).group(2)
                 
                 if tag in current_tags:
                     logging.warn("{0}:{1}: \"{2}\" was entered twice without exiting it".format(self.path, line_number, tag))
@@ -188,7 +192,7 @@ class TaggedDocumentVersion(object):
                 
             # If we left a tag, remove it
             elif end_re.search(line_text):
-                tag = end_re.search(line_text).group(1)
+                tag = end_re.search(line_text).group(2)
                 
                 if tag not in current_tags:
                     logging.warn("{0}:{1}: \"{2}\" was exited, but had not yet been entered".format(self.path, line_number, tag))
