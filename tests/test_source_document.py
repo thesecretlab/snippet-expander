@@ -6,7 +6,7 @@ from tagged_document import TaggedDocument
 class SourceDocumentTests(unittest.TestCase):
     """Unit tests for the Document class"""
     def test_cleaning(self):
-        """Tests removing snippets"""
+        # Tests removing snippets
 
         input_path = "tests/sample-expanded.txt"
         reference_path = "tests/sample.txt"
@@ -26,7 +26,7 @@ class SourceDocumentTests(unittest.TestCase):
 
 
     def test_processing(self):
-        """Tests rendering a snippet using tagged documents."""
+        # Tests rendering a snippet using tagged documents.
         repo = create_test_repo()
 
         tagged_documents = TaggedDocument.find(repo, ["txt"])

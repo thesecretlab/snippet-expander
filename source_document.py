@@ -6,9 +6,9 @@ import os
 import logging
 from fuzzywuzzy import process
 
-SNIP_PREFIX="// snip:"
-SNIP_FILE_PREFIX="// snip-file:"
-TAG_PREFIX="// tag:"
+SNIP_PREFIX="// snip"
+SNIP_FILE_PREFIX="// snip-file"
+TAG_PREFIX="// tag"
 
 # The virtual "ref" that represents the current state of the files on disk,
 # and may not necessarily be stored in the index or in a commit. Uses a
@@ -57,7 +57,7 @@ class SourceDocument(object):
     @property 
     def cleaned_contents(self):
         """Returns a version of 'text' that has no expanded snippets."""
-        snip_with_code = re.compile("(//.*snip(\-file)*:.*\n)(\[.*\]\n)*----\n(.*\n)*?----\n")
+        snip_with_code = re.compile("(//.*snip(\-file)*:?.*\n)(\[.*\]\n)*----\n(.*\n)*?----\n", flags=re.IGNORECASE)
         cleaned = re.sub(snip_with_code, r'\1', self.contents)
         return cleaned
     
@@ -80,19 +80,25 @@ class SourceDocument(object):
         # encountered in the document
         current_ref = WORKSPACE_REF
 
+        tag_regex = re.compile(r"$\/\/\s*tag:?\s*(.*)^", flags=re.IGNORECASE)
+        snip_regex = re.compile(r"$\/\/\s*tag:?\s*(.*)^", flags=re.IGNORECASE)
+
         for line in source_lines:
             output_lines.append(line)
 
             # change which tag we're looking at if we hit an instruction to
             # do so
-            if line.startswith(TAG_PREFIX):
-                current_ref = line[len(TAG_PREFIX)+1:].strip()
+            tag = tag_regex.match(line)
+
+            if tag:
+                current_ref = tag.groups(1).strip()
 
             # is this a snippet?
-            if line.startswith(SNIP_PREFIX):
+            snippet = snip_regex.match(line)
+            if snippet:
 
                 # figure out what tags we're supposed to be using here
-                query_text = line[len(SNIP_PREFIX)+1:]
+                query_text = snippet.groups(1)
 
                 # build the tag query from this
                 query = TagQuery(query_text, ref=current_ref)

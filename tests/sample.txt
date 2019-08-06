@@ -14,6 +14,11 @@ Let's change to see the second tag.
 Finally, let's go back to the working copy.
 
 // tag: working-copy
-// snip: sourceA
+// snip sourceA
 
 This is the final line of the example.
+
+Let's check that python quotes work.
+
+// snip python-quotes
+

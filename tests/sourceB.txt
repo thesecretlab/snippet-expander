@@ -1,3 +1,8 @@
 // BEGIN sourceB
 This file is not committed to the test repo.
 // END sourceB
+
+# begin python-quotes
+This snippet uses python quotes, and is in lowercase.
+# end python-quotes
+

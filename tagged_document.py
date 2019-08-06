@@ -167,8 +167,8 @@ class TaggedDocumentVersion(object):
         # begin_re = re.compile(r"\s*(\/\/|#)\s*BEGIN\s+([^\s]+)")
         # end_re = re.compile(r"\s*(\/\/|#)\s*END\s+([^\s]+)")
 
-        begin_re = re.compile(r"\s*(\/\/|\#)\s*BEGIN\s+([^\s]+)")
-        end_re = re.compile(r"\s*(\/\/|\#)\s*END\s+([^\s]+)")
+        begin_re = re.compile(r"\s*(\/\/|\#)\s*BEGIN\s+([^\s]+)", flags=re.IGNORECASE)
+        end_re = re.compile(r"\s*(\/\/|\#)\s*END\s+([^\s]+)", flags=re.IGNORECASE)
 
 
         current_tags = []
@@ -255,11 +255,11 @@ class TagQuery(object):
         for token in tokens:
             
             # Change mode if we have to
-            if token == "except":
+            if token.lower() == "except":
                 mode = EXCLUDE_TAGS
-            elif token == "highlighting":
+            elif token.lower() == "highlighting":
                 mode = HIGHLIGHT_TAGS
-            elif token == "isolating":
+            elif token.lower() == "isolating":
                 mode = ISOLATE_TAGS
             
             # Otherwise, add it to the list of tokens
