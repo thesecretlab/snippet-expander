@@ -15,7 +15,8 @@ from source_document import WORKSPACE_REF
 SOURCE_FILE_EXTENSIONS = [
     "swift",
     "txt",
-    "cs"
+    "cs",
+    "py"
 ]
 
 class Processor(object):
