@@ -206,8 +206,13 @@ class TaggedDocumentVersion(object):
                 self.lines.append(TaggedLine(self.path, line_number, line_text, copy.copy(current_tags)))
     
     def lines_over_limit(self, limit):
-
-        return [line for line in self.lines if len(line.text) > limit]
+        # Returns the collection of lines in this document that go over the
+        # specified limit. The characters are counted in Unicode, not
+        # individual codes.
+        return [
+            line for line in self.lines 
+                if len(line.text.decode("utf-8")) > limit
+            ]
 
     
 class TaggedLine(object):
