@@ -57,7 +57,7 @@ class SourceDocument(object):
     @property 
     def cleaned_contents(self):
         """Returns a version of 'text' that has no expanded snippets."""
-        snip_with_code = re.compile("(//.*snip(\-file)*:?.*\n)(\[.*\]\n)*----\n(.*\n)*?----\n", flags=re.IGNORECASE)
+        snip_with_code = re.compile("(//.*snip(\-file)*:?.*\n)(\+\n)?(\[.*\]\n)*----\n(.*\n)*?----\n", flags=re.IGNORECASE)
         cleaned = re.sub(snip_with_code, r'\1', self.contents)
         return cleaned
     
@@ -146,7 +146,7 @@ class SourceDocument(object):
 
         
 
-    def render(self, tagged_documents, language=None, clean=False, show_query=True, file_getter=None):
+    def render(self, tagged_documents, language=None, clean=False, show_query=True, file_getter=None, as_inline_list_items=False):
 
         """Returns a tuple of (string,bool): a version of itself after expanding snippets with code found in 'tagged_documents', and True if any snippets were rendered"""
         assert isinstance(tagged_documents, list)
@@ -248,6 +248,9 @@ class SourceDocument(object):
                     rendered_lines = [exclamations, warning, exclamations]
                 
                 # time to produce our output!
+
+                if as_inline_list_items:
+                    output_lines.append("+")
 
                 # add the language tag if one was specified
                 if language:

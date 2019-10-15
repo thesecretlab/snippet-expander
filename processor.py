@@ -21,7 +21,7 @@ SOURCE_FILE_EXTENSIONS = [
 
 class Processor(object):
     
-    def __init__(self, source_path, tagged_path, source_extensions=["txt"], tagged_extensions=["swift"], language=None, clean=False, expand_images=False, show_query=False):
+    def __init__(self, source_path, tagged_path, source_extensions=["txt"], tagged_extensions=["swift"], language=None, clean=False, expand_images=False, show_query=False, as_inline_list_items=False):
         assert isinstance(source_path, str)
         assert isinstance(tagged_path, str)
         
@@ -37,6 +37,8 @@ class Processor(object):
         self.expand_images = expand_images
 
         self.show_query = show_query
+
+        self.as_inline_list_items = as_inline_list_items
     
     def get_file_contents(self, name):
 
@@ -60,7 +62,8 @@ class Processor(object):
                 language=self.language, 
                 clean=self.clean, 
                 file_getter=file_getter,
-                show_query=self.show_query
+                show_query=self.show_query,
+                as_inline_list_items=self.as_inline_list_items
                 )
 
             if dirty:
@@ -169,6 +172,7 @@ def main():
     advanced_options.add_argument("-x", "--extract-snippets", dest="extract_dir", default=None, help="Render each snippet to a file, and store it in this directory.", widget="DirChooser")
     advanced_options.add_argument("-v", "--verbose", action="store_true", help="Verbose logging.")
     advanced_options.add_argument("-q", "--show_query", action="store_true", help="Include the query in rendered snippets.")
+    advanced_options.add_argument("--as_inline_list_items", action="store_true", help="Add a + after the snippet tag, to make the snippets format properly when being used as inline blocks in list items")
     #options.add_argument("-i", "--expand-images", action="store_true", help="Expand img: shortcuts (CURRENTLY BROKEN!)")
 
     
@@ -180,7 +184,15 @@ def main():
     if opts.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    processor = Processor(opts.source_dir, opts.code_dir,source_extensions=["txt","asciidoc"], tagged_extensions=SOURCE_FILE_EXTENSIONS, language=opts.language, clean=opts.clean, show_query=opts.show_query)
+    processor = Processor(
+        opts.source_dir, 
+        opts.code_dir,
+        source_extensions=["txt","asciidoc"],
+        tagged_extensions=SOURCE_FILE_EXTENSIONS, 
+        language=opts.language, 
+        clean=opts.clean, 
+        show_query=opts.show_query,
+        as_inline_list_items=opts.as_inline_list_items)
 
     logging.debug("Found %i source files:", len(processor.source_documents))
     for doc in processor.source_documents:
